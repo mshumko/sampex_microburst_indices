@@ -93,7 +93,7 @@ class Load_HILT:
         # Check if the seconds are monotonically increasing.
         np_time = self.hilt['Time'].to_numpy()
         if np.any(np_time[1:] < np_time[:-1]):
-            raise RuntimeError('The SAMPEX HITL data is not in order.')
+            raise RuntimeError('The SAMPEX HILT data is not in order.')
         # Convert seconds of day to a datetime object.
         day_seconds_obj = pd.to_timedelta(self.hilt['Time'], unit='s')
         self.hilt['Time'] = pd.Timestamp(self.load_date.date()) + day_seconds_obj

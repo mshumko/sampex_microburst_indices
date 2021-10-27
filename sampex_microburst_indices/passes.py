@@ -28,13 +28,26 @@ class Passes:
         filter by L_range, and save the passes.
         """
         self._get_hilt_file_dates()
+        attitude_dates = [datetime.min]
 
         for date in self.hilt_dates:
-            if self.in_spin_time(date):
+            # The following if statement is to be consistant with the 
+            # microburst dataset created using the 
+            # sampex_microburst_widths/microburst_id/identify_microbursts.py
+            # module.
+            if self.in_spin_time(date) or date.year == 1996:
                 continue
-
-            self.hilt = Load_HILT(date)
-            self.attitude = Load_Attitude(date)
+            try:
+                self.hilt = Load_HILT(date)
+            except RuntimeError as err:
+                if 'The SAMPEX HILT data is not in order.' == str(err):
+                    continue
+                else:
+                    raise
+                
+            if date not in attitude_dates:
+                self.attitude = Load_Attitude(date)
+                attitude_dates = set(self.attitude.attitude.index.date)
             pass
         return
 
@@ -90,8 +103,6 @@ class Passes:
             return True
         else:
             raise ValueError('Not supposed to get here.')
-        return
-    
 
 
 if __name__ == '__main__':
