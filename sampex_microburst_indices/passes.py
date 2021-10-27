@@ -66,12 +66,15 @@ class Passes:
                                 direction='nearest')
         return
 
-    def calculate_passes(self):
+    def get_pass_times(self):
         """
         Calculate passes by filtering by the L_Shell variable.
         """
-
-        return df
+        filtered_hilt = self.hilt.hilt[
+            (self.hilt.hilt['L_Shell'] >= self.L_range[0]) &
+            (self.hilt.hilt['L_Shell'] <= self.L_range[1])
+            ]
+        return
 
 
     def _get_hilt_file_paths(self):
