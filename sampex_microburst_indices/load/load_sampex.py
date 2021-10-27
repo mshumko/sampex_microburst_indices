@@ -8,10 +8,10 @@ from datetime import datetime, date
 import pandas as pd
 import numpy as np
 
-from sampex_microburst_widths import config
+from sampex_microburst_indices import config
 
 
-class Load_SAMPEX_HILT:
+class Load_HILT:
     def __init__(self, load_date, extract=False, 
                 time_index=True, verbose=False):
         """
@@ -90,7 +90,7 @@ class Load_SAMPEX_HILT:
         Parse the seconds of day column to a datetime column. 
         If time_index=True, the time column will become the index.
         """
-        # Check if the seconds are monitonically increasing.
+        # Check if the seconds are monotonically increasing.
         np_time = self.hilt['Time'].to_numpy()
         if np.any(np_time[1:] < np_time[:-1]):
             raise RuntimeError('The SAMPEX HITL data is not in order.')
@@ -126,7 +126,7 @@ class Load_SAMPEX_HILT:
         return self.counts, self.times
 
 
-class Load_SAMPEX_Attitude:
+class Load_Attitude:
     def __init__(self, load_date, verbose=False):
         """ 
         This class loads the appropriate SAMEX attitude file, 

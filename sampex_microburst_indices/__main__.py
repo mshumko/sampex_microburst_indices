@@ -34,6 +34,6 @@ if (len(sys.argv) > 1) and (sys.argv[1] in ['init', 'config', 'configure']):
 else:
     print('This is a configuration script to set up config.py file. The config '
         'file will contain the SAMPEX/HILT data directory, the base project '
-        'directory (here), and the auroral electroject directory. To see the '
+        'directory (here), and the auroral electrojet directory. To see the '
         'prompt after this package is installed, run '
         'python3 -m sampex_microburst_indices init')
