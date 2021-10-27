@@ -1,7 +1,4 @@
-"""
-Loop over every State 4 HILT data file and calculate all radiation belt passes.
-A radiation belt pass is defined by 4 < L < 8.
-"""
+from os import name
 import pathlib
 import re
 from datetime import datetime
@@ -9,11 +6,32 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-import sampex_microburst_indices.config as config
+from sampex_microburst_indices.load.load_sampex import Load_HILT
+from sampex_microburst_indices.load.load_sampex import Load_Attitude
+from sampex_microburst_indices import config
+
 
 class Passes:
+    """
+    Loop over every State 4 HILT data file and calculate all radiation belt passes.
+    A radiation belt pass is defined by L-shells as the L_range kwarg.
+    """
     def __init__(self, L_range=(4, 8)) -> None:
-        self.L_range = L_range
+        self.L_range = sorted(L_range)
+        columns = ['start_time', 'end_time', 'duration', 'MLT', 'Att_Flag']
+        self.passes = pd.DataFrame(data=np.zeros(0, len(columns)), columns=columns)
+        return
+
+    def loop(self):
+        """
+        Loads every HILT file, load and append the corresponding attitude,
+        filter by L_range, and save the passes.
+        """
+        self._get_hilt_file_dates()
+
+        for t in self.hilt_dates:
+
+            pass
         return
 
     def _get_hilt_file_paths(self):
