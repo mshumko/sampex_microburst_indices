@@ -4,7 +4,7 @@ A radiation belt pass is defined by 4 < L < 8.
 """
 import pathlib
 import re
-from datetime import date, datetime
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -12,8 +12,9 @@ import pandas as pd
 import sampex_microburst_indices.config as config
 
 class Passes:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, L_range=(4, 8)) -> None:
+        self.L_range = L_range
+        return
 
     def _get_hilt_file_paths(self):
         """
