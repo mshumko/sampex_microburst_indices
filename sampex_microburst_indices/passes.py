@@ -104,7 +104,7 @@ class Passes:
         Load the spin_times.csv file that was used in the sampex_microburst_widths project.
         This is purely for consistency with the microburst dataset.
         """
-        spin_times_path = pathlib.Path(config.PROJECT_DIR, 'data', 'spin_times.csv')
+        spin_times_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', 'spin_times.csv')
         self.spin_times = pd.read_csv(spin_times_path, parse_dates=[0,1])
         return
 

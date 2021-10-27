@@ -167,8 +167,8 @@ class Load_Attitude:
             if (int(start_date) <= current_date_int) and (int(end_date) >= current_date_int):
                 self.attitude_file = f
         if self.attitude_file is None:
-            raise ValueError(f'A matched file not found for year='
-                             f'{self.load_date.year}, doy={self.doy}')
+            raise ValueError(f'A matched file not found in {pathlib.Path(config.SAMPEX_DIR, "attitude")} '
+                             f'for year={self.load_date.year}, doy={self.doy}')
         return self.attitude_file
 
     def load_attitude(self, columns='default', remove_old_time_cols=True):
