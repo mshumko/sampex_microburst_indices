@@ -199,8 +199,7 @@ class Load_Attitude:
             # columns values for the column names.
             self.attitude = pd.read_csv(f, delim_whitespace=True,
                                         names=columns.values(), 
-                                        usecols=columns.keys(),
-                                        warn_bad_lines=True, error_bad_lines=False)
+                                        usecols=columns.keys())
         self._parse_attitude_datetime(remove_old_time_cols)
         return
 

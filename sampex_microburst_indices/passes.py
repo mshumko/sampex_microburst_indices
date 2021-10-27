@@ -18,8 +18,8 @@ class Passes:
     """
     def __init__(self, L_range=(4, 8)) -> None:
         self.L_range = sorted(L_range)
-        columns = ['start_time', 'end_time', 'duration', 'MLT', 'Att_Flag']
-        self.passes = pd.DataFrame(data=np.zeros((0, len(columns))), columns=columns)
+        self.columns = ['start_time', 'end_time', 'duration', 'MLT', 'max_att_flag']
+        self.passes = pd.DataFrame(data=np.zeros((0, len(self.columns))), columns=self.columns)
         return
 
     def loop(self):
@@ -44,12 +44,35 @@ class Passes:
                     continue
                 else:
                     raise
-                
+
             if date not in attitude_dates:
+                # Loading the attitude will load date and future dates in that file.
+                # Thus, we don't need to load the attitude data for every day in this 
+                # loop.
                 self.attitude = Load_Attitude(date)
                 attitude_dates = set(self.attitude.attitude.index.date)
-            pass
+            
+            self.merge_hilt_attitude()
+            self.calculate_passes()
         return
+
+    def merge_hilt_attitude(self):
+        """
+        Uses pd.merge_asof to merge the attitude data onto the HILT data.
+        """
+        self.hilt.hilt = pd.merge_asof(self.hilt.hilt, self.attitude.attitude, 
+                                left_index=True, right_index=True, 
+                                tolerance=pd.Timedelta(seconds=10),
+                                direction='nearest')
+        return
+
+    def calculate_passes(self):
+        """
+        Calculate passes by filtering by the L_Shell variable.
+        """
+
+        return df
+
 
     def _get_hilt_file_paths(self):
         """
