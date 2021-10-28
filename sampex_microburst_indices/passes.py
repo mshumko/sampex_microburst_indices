@@ -68,7 +68,7 @@ class Passes:
                                 direction='nearest')
         return
 
-    def pass_times(self, gap_threshold_s=5*60):
+    def pass_times(self, gap_threshold_s=5*60, debug=True):
         """
         Calculate radiation belt passes by filtering by the L_Shell variable.
         """
@@ -83,29 +83,37 @@ class Passes:
         daily_passes = pd.DataFrame(data={col:np.zeros(len(start_indices), dtype=object)
             for col in self.columns})
 
-        colors = ['r', 'g', 'b']
-        color_cycler = itertools.cycle(colors)
-        ax = plt.subplot()
+        if debug:
+            colors = ['r', 'g', 'b']
+            color_cycler = itertools.cycle(colors)
+            ax = plt.subplot()
 
         for i, (start_index, end_index) in enumerate(zip(start_indices, end_indices)):
-            if start_index == end_index:
-                raise ValueError('Start and end indices are the same. A one-off index error?')
 
+            # I am not sure why this is necessary, but without it the pass code completely breaks.
             start_index += i
-            end_index += i
+            
+            start_time = filtered_hilt.index[start_index]
+            end_time = filtered_hilt.index[end_index]
+            duration_s = (end_time-start_time).total_seconds()
 
-            ax.scatter(filtered_hilt.index[start_index:end_index], 
-                        filtered_hilt.L_Shell[start_index:end_index],
-                        c=next(color_cycler))
+            if duration_s < 60:
+                continue
 
-            print(f'Pass {i}',
-                filtered_hilt['L_Shell'][start_index], 
-                filtered_hilt['L_Shell'][end_index],
-                round((filtered_hilt.index[end_index]-filtered_hilt.index[start_index]).total_seconds()/60)
-                )
+            if debug:
+                ax.scatter(filtered_hilt.index[start_index:end_index], 
+                            filtered_hilt.L_Shell[start_index:end_index],
+                            c=next(color_cycler))
+
+                print(f'Pass {i} |',
+                    f'L={round(filtered_hilt["L_Shell"][start_index], 1)}-{round(filtered_hilt.loc[end_time, "L_Shell"],1)} |',
+                    f'MLT={round(filtered_hilt["MLT"][start_index], 1)}-{round(filtered_hilt.loc[end_time, "MLT"],1)} |',
+                    f'duration={round(duration_s/60)}'
+                    )
 
             # TODO: Add a minimum allowable pass time duration (1 minute)?
-        plt.show()
+        if debug:
+            plt.show()
         return
 
 
