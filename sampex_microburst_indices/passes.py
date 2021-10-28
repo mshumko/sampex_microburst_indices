@@ -1,6 +1,7 @@
 from os import name
 import pathlib
 import re
+import itertools  # For debugging
 from datetime import datetime
 
 import numpy as np
@@ -82,15 +83,28 @@ class Passes:
         daily_passes = pd.DataFrame(data={col:np.zeros(len(start_indices), dtype=object)
             for col in self.columns})
 
-        for start_index, end_index in zip(start_indices, end_indices):
+        colors = ['r', 'g', 'b']
+        color_cycler = itertools.cycle(colors)
+        ax = plt.subplot()
+
+        for i, (start_index, end_index) in enumerate(zip(start_indices, end_indices)):
             if start_index == end_index:
                 raise ValueError('Start and end indices are the same. A one-off index error?')
 
-            print(
+            start_index+=1
+
+            ax.scatter(filtered_hilt.index[start_index:end_index], 
+                        filtered_hilt.L_Shell[start_index:end_index],
+                        c=next(color_cycler))
+
+            print(f'Pass {i}',
                 filtered_hilt['L_Shell'][start_index], 
                 filtered_hilt['L_Shell'][end_index],
-                (filtered_hilt.index[end_index]-filtered_hilt.index[start_index]).total_seconds()/60
+                round((filtered_hilt.index[end_index]-filtered_hilt.index[start_index]).total_seconds()/60)
                 )
+
+            # TODO: Add a minimum allowable pass time duration (1 minute)?
+        plt.show()
         return
 
 
