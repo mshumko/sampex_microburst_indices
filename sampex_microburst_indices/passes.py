@@ -47,13 +47,12 @@ class Passes:
 
             if date not in attitude_dates:
                 # Loading the attitude will load date and future dates in that file.
-                # Thus, we don't need to load the attitude data for every day in this 
-                # loop.
+                # Thus, we don't need to load the attitude data in very iteration.
                 self.attitude = Load_Attitude(date)
                 attitude_dates = set(self.attitude.attitude.index.date)
             
             self.merge_hilt_attitude()
-            self.calculate_passes()
+            self.pass_times()
         return
 
     def merge_hilt_attitude(self):
@@ -66,14 +65,17 @@ class Passes:
                                 direction='nearest')
         return
 
-    def get_pass_times(self):
+    def pass_times(self, gap_threshold_min=10):
         """
-        Calculate passes by filtering by the L_Shell variable.
+        Calculate radiation belt passes by filtering by the L_Shell variable.
         """
         filtered_hilt = self.hilt.hilt[
             (self.hilt.hilt['L_Shell'] >= self.L_range[0]) &
             (self.hilt.hilt['L_Shell'] <= self.L_range[1])
             ]
+
+        dt = filtered_hilt.index[1:] - filtered_hilt.index[:-1]
+        gap_ind = np.where(dt > gap_threshold_min)[0]
         return
 
 
