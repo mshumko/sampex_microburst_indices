@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt  # For debugging
 from sampex_microburst_indices.load.load_sampex import Load_HILT
 from sampex_microburst_indices.load.load_sampex import Load_Attitude
 from sampex_microburst_indices import config
-from sampex_microburst_indices import utils
 
 
 class Passes:
@@ -78,8 +77,9 @@ class Passes:
             ]
         # Identify all of the start and end intervals.
         dt = (filtered_hilt.index[1:] - filtered_hilt.index[:-1]).total_seconds()
-        pass_indices = np.where(dt < gap_threshold_s)[0]
-        start_indices, end_indices = utils.find_index_intervals(pass_indices)
+        gaps = np.where(dt > gap_threshold_s)[0]
+        start_indices = np.concatenate(([0], gaps+1))
+        end_indices = np.concatenate((gaps, [filtered_hilt.shape[0]-1] ))
         daily_passes = pd.DataFrame(data={col:np.zeros(len(start_indices), dtype=object)
             for col in self.columns})
 
@@ -88,11 +88,7 @@ class Passes:
             color_cycler = itertools.cycle(colors)
             ax = plt.subplot()
 
-        for i, (start_index, end_index) in enumerate(zip(start_indices, end_indices)):
-
-            # I am not sure why this is necessary, but without it the pass code completely breaks.
-            start_index += i
-            
+        for i, (start_index, end_index) in enumerate(zip(start_indices, end_indices)):            
             start_time = filtered_hilt.index[start_index]
             end_time = filtered_hilt.index[end_index]
             duration_s = (end_time-start_time).total_seconds()
