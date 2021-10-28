@@ -20,7 +20,7 @@ class Passes:
     """
     def __init__(self, L_range=(4, 8)) -> None:
         self.L_range = sorted(L_range)
-        self.columns = ['start_time', 'end_time', 'duration', 'MLT', 'max_att_flag']
+        self.columns = ['start_time', 'end_time', 'duration_s', 'MLT', 'max_att_flag']
         self.passes = pd.DataFrame(data=np.zeros((0, len(self.columns))), columns=self.columns)
         return
 
@@ -80,7 +80,7 @@ class Passes:
         gaps = np.where(dt > gap_threshold_s)[0]
         start_indices = np.concatenate(([0], gaps+1))
         end_indices = np.concatenate((gaps, [filtered_hilt.shape[0]-1] ))
-        daily_passes = pd.DataFrame(data={col:np.zeros(len(start_indices), dtype=object)
+        daily_passes = pd.DataFrame(data={col:np.array([], dtype=object)
             for col in self.columns})
 
         if debug:
@@ -95,6 +95,14 @@ class Passes:
 
             if duration_s < 60:
                 continue
+
+            df = pd.DataFrame(index=[0],
+                data={'start_time':start_time, 'end_time':end_time, 'duration_s':duration_s,
+                'MLT':filtered_hilt["MLT"][start_index:end_index].mean(),
+                'max_att_flag':filtered_hilt["Att_Flag"][start_index:end_index].max()}
+                )
+            daily_passes = pd.concat([daily_passes, df])
+
 
             if debug:
                 ax.scatter(filtered_hilt.index[start_index:end_index], 
