@@ -9,6 +9,7 @@ import pandas as pd
 from sampex_microburst_indices.load.load_sampex import Load_HILT
 from sampex_microburst_indices.load.load_sampex import Load_Attitude
 from sampex_microburst_indices import config
+from sampex_microburst_indices import utils
 
 
 class Passes:
@@ -65,7 +66,7 @@ class Passes:
                                 direction='nearest')
         return
 
-    def pass_times(self, gap_threshold_min=10):
+    def pass_times(self, gap_threshold_s=5*60):
         """
         Calculate radiation belt passes by filtering by the L_Shell variable.
         """
@@ -73,9 +74,18 @@ class Passes:
             (self.hilt.hilt['L_Shell'] >= self.L_range[0]) &
             (self.hilt.hilt['L_Shell'] <= self.L_range[1])
             ]
+        # Identify all of the start and end intervals.
+        dt = (filtered_hilt.index[1:] - filtered_hilt.index[:-1]).total_seconds()
+        pass_indices = np.where(dt < gap_threshold_s)[0]
+        start_indices, end_indices = utils.find_index_intervals(pass_indices)
+        daily_passes = pd.DataFrame(data={col:np.zeros(len(start_indices), dtype=object)
+            for col in self.columns})
 
-        dt = filtered_hilt.index[1:] - filtered_hilt.index[:-1]
-        gap_ind = np.where(dt > gap_threshold_min)[0]
+        for start_index, end_index in zip(start_indices, end_indices):
+            if start_index == end_index:
+                raise ValueError('Start and end indices are the same. A one-off index error?')
+
+            print(filtered_hilt['L_Shell'][start_index], filtered_hilt['L_Shell'][end_index])
         return
 
 
