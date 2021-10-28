@@ -91,6 +91,9 @@ class Passes:
             if start_index == end_index:
                 raise ValueError('Start and end indices are the same. A one-off index error?')
 
+            start_index += i
+            end_index += i
+
             ax.scatter(filtered_hilt.index[start_index:end_index], 
                         filtered_hilt.L_Shell[start_index:end_index],
                         c=next(color_cycler))
