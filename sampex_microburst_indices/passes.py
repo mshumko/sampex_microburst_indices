@@ -5,6 +5,7 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt  # For debugging
 
 from sampex_microburst_indices.load.load_sampex import Load_HILT
 from sampex_microburst_indices.load.load_sampex import Load_Attitude
@@ -85,7 +86,11 @@ class Passes:
             if start_index == end_index:
                 raise ValueError('Start and end indices are the same. A one-off index error?')
 
-            print(filtered_hilt['L_Shell'][start_index], filtered_hilt['L_Shell'][end_index])
+            print(
+                filtered_hilt['L_Shell'][start_index], 
+                filtered_hilt['L_Shell'][end_index],
+                (filtered_hilt.index[end_index]-filtered_hilt.index[start_index]).total_seconds()/60
+                )
         return
 
 
