@@ -6,6 +6,7 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import progressbar
 import matplotlib.pyplot as plt  # For debugging
 
 from sampex_microburst_indices.load.sampex import Load_HILT
@@ -21,7 +22,7 @@ class Passes:
     """
     def __init__(self, L_range=(4, 8)) -> None:
         self.L_range = sorted(L_range)
-        self.columns = ['start_time', 'end_time', 'duration_s', 'MLT', 'max_att_flag']
+        self.columns = ['start_time', 'end_time', 'duration_s', 'mean_MLT', 'min_MLT', 'max_MLT', 'max_att_flag']
         self.passes = pd.DataFrame(data=np.zeros((0, len(self.columns))), columns=self.columns)
         return
 
@@ -33,7 +34,7 @@ class Passes:
         self._get_hilt_file_dates()
         attitude_dates = [datetime.min]
 
-        for date in self.hilt_dates:
+        for date in progressbar.progressbar(self.hilt_dates, redirect_stdout=True):
             # The following if statement is to be consistant with the 
             # microburst dataset created using the 
             # sampex_microburst_widths/microburst_id/identify_microbursts.py
@@ -57,6 +58,9 @@ class Passes:
             self.merge_hilt_attitude()
             filtered_hilt, start_indices, end_indices = self.pass_times()
             pass_values = self.pass_values(filtered_hilt, start_indices, end_indices)
+            self.passes = pd.concat([self.passes, pass_values])
+            self.passes.reset_index(inplace=True, drop=True)
+            pass
         return
 
     def merge_hilt_attitude(self):
@@ -69,7 +73,7 @@ class Passes:
                                 direction='nearest')
         return
 
-    def pass_times(self, gap_threshold_s=5*60, debug=True):
+    def pass_times(self, gap_threshold_s=5*60):
         """
         Calculate radiation belt passes by filtering by the L_Shell variable.
         """
@@ -85,7 +89,7 @@ class Passes:
         return filtered_hilt, start_indices, end_indices
 
 
-    def pass_values(self, hilt_df, start_indices, end_indices, debug=True):
+    def pass_values(self, hilt_df, start_indices, end_indices, debug=False):
         """
         Given the start and end indices of a HILT dataframe, calculate the start and
         end times, duration, mean MLT and maximum attitude flag for each radiation
@@ -109,7 +113,9 @@ class Passes:
 
             df = pd.DataFrame(index=[0],
                 data={'start_time':start_time, 'end_time':end_time, 'duration_s':duration_s,
-                'MLT':hilt_df["MLT"][start_index:end_index].mean(),
+                'mean_MLT':hilt_df["MLT"][start_index:end_index].mean(),
+                'min_MLT':hilt_df["MLT"][start_index:end_index].min(),
+                'max_MLT':hilt_df["MLT"][start_index:end_index].max(),
                 'max_att_flag':hilt_df["Att_Flag"][start_index:end_index].max()}
                 )
             pass_values = pd.concat([pass_values, df])
@@ -130,6 +136,14 @@ class Passes:
         if debug:
             plt.show()
         return pass_values
+
+    def save_passes(self, file_name):
+        """
+        Saves the csv of the pass times to the config.PROJECT_DIR/../data/ directory.
+        """
+        save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
+        self.passes.to_csv(save_path, index=False)
+        return
 
 
     def _get_hilt_file_paths(self):
@@ -189,3 +203,4 @@ class Passes:
 if __name__ == '__main__':
     p = Passes()
     p.loop()
+    p.save_passes('sampex_passes_v0.csv')
