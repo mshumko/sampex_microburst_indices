@@ -55,7 +55,8 @@ class Passes:
                 attitude_dates = set(self.attitude.attitude.index.date)
             
             self.merge_hilt_attitude()
-            self.pass_times()
+            filtered_hilt, start_indices, end_indices = self.pass_times()
+            pass_values = self.pass_values(filtered_hilt, start_indices, end_indices)
         return
 
     def merge_hilt_attitude(self):
@@ -81,7 +82,16 @@ class Passes:
         gaps = np.where(dt > gap_threshold_s)[0]
         start_indices = np.concatenate(([0], gaps+1))
         end_indices = np.concatenate((gaps, [filtered_hilt.shape[0]-1] ))
-        daily_passes = pd.DataFrame(data={col:np.array([], dtype=object)
+        return filtered_hilt, start_indices, end_indices
+
+
+    def pass_values(self, hilt_df, start_indices, end_indices, debug=True):
+        """
+        Given the start and end indices of a HILT dataframe, calculate the start and
+        end times, duration, mean MLT and maximum attitude flag for each radiation
+        belt pass.
+        """
+        pass_values = pd.DataFrame(data={col:np.array([], dtype=object)
             for col in self.columns})
 
         if debug:
@@ -90,8 +100,8 @@ class Passes:
             ax = plt.subplot()
 
         for i, (start_index, end_index) in enumerate(zip(start_indices, end_indices)):            
-            start_time = filtered_hilt.index[start_index]
-            end_time = filtered_hilt.index[end_index]
+            start_time = hilt_df.index[start_index]
+            end_time = hilt_df.index[end_index]
             duration_s = (end_time-start_time).total_seconds()
 
             if duration_s < 60:
@@ -99,27 +109,27 @@ class Passes:
 
             df = pd.DataFrame(index=[0],
                 data={'start_time':start_time, 'end_time':end_time, 'duration_s':duration_s,
-                'MLT':filtered_hilt["MLT"][start_index:end_index].mean(),
-                'max_att_flag':filtered_hilt["Att_Flag"][start_index:end_index].max()}
+                'MLT':hilt_df["MLT"][start_index:end_index].mean(),
+                'max_att_flag':hilt_df["Att_Flag"][start_index:end_index].max()}
                 )
-            daily_passes = pd.concat([daily_passes, df])
+            pass_values = pd.concat([pass_values, df])
 
 
             if debug:
-                ax.scatter(filtered_hilt.index[start_index:end_index], 
-                            filtered_hilt.L_Shell[start_index:end_index],
+                ax.scatter(hilt_df.index[start_index:end_index], 
+                            hilt_df.L_Shell[start_index:end_index],
                             c=next(color_cycler))
 
-                print(f'Pass {i} |',
-                    f'L={round(filtered_hilt["L_Shell"][start_index], 1)}-{round(filtered_hilt.loc[end_time, "L_Shell"],1)} |',
-                    f'MLT={round(filtered_hilt["MLT"][start_index], 1)}-{round(filtered_hilt.loc[end_time, "MLT"],1)} |',
+                print(f'Pass: {start_time}-{end_time} |',
+                    f'L={round(hilt_df["L_Shell"][start_index], 1)}-{round(hilt_df.loc[end_time, "L_Shell"],1)} |',
+                    f'MLT={round(hilt_df["MLT"][start_index], 1)}-{round(hilt_df.loc[end_time, "MLT"],1)} |',
                     f'duration={round(duration_s/60)}'
                     )
 
             # TODO: Add a minimum allowable pass time duration (1 minute)?
         if debug:
             plt.show()
-        return
+        return pass_values
 
 
     def _get_hilt_file_paths(self):
