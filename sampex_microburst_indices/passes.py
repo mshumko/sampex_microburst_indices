@@ -8,8 +8,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt  # For debugging
 
-from sampex_microburst_indices.load.load_sampex import Load_HILT
-from sampex_microburst_indices.load.load_sampex import Load_Attitude
+from sampex_microburst_indices.load.sampex import Load_HILT
+from sampex_microburst_indices.load.sampex import Load_Attitude
+from sampex_microburst_indices.load.sampex import yeardoy2date
 from sampex_microburst_indices import config
 
 
@@ -140,7 +141,7 @@ class Passes:
         self._get_hilt_file_paths()
 
         date_strings = [re.search(r'\d+', t.name).group() for t in self.hilt_file_paths]
-        self.hilt_dates = [datetime.strptime(t, "%Y%j") for t in date_strings]
+        self.hilt_dates = [yeardoy2date(t) for t in date_strings]
         return self.hilt_dates
 
     def _load_spin_times(self):

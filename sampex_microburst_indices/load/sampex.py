@@ -23,20 +23,12 @@ class Load_HILT:
         otherwise the index is just an enumerated list.
         """
         self.load_date = load_date
+        self.load_date_str = date2yeardoy(self.load_date)
         self.verbose = verbose
-        # If date is in string format, convert to a pd.Timestamp object
-        if isinstance(self.load_date, str):
-            self.load_date = pd.to_datetime(self.load_date)
-        
-        # Figure out how to calculate the day of year (DOY)
-        if isinstance(self.load_date, pd.Timestamp):
-            doy = str(self.load_date.dayofyear).zfill(3)
-        elif isinstance(self.load_date, (datetime, date) ):
-            doy = str(self.load_date.timetuple().tm_yday).zfill(3)
 
         # Get the filename and search for it. If multiple or no
         # unique files are found this will raise an assertion error.
-        file_name_glob = f'hhrr{self.load_date.year}{doy}*'
+        file_name_glob = f'hhrr{self.load_date_str}*'
         matched_files = list(
             pathlib.Path(config.SAMPEX_DIR, 'hilt').rglob(file_name_glob)
             )
@@ -126,6 +118,12 @@ class Load_HILT:
         return self.counts, self.times
 
 
+class Load_PET:
+    def __init__(self, load_date) -> None:
+
+        return
+
+
 class Load_Attitude:
     def __init__(self, load_date, verbose=False):
         """ 
@@ -134,16 +132,8 @@ class Load_Attitude:
         columns into datetime objects
         """
         self.load_date = load_date
+        self.load_date_str = date2yeardoy(load_date)
         self.verbose = verbose
-        # If date is in string format, convert to a pd.Timestamp object
-        if isinstance(self.load_date, str):
-            self.load_date = pd.to_datetime(self.load_date)
-
-        # Figure out how to calculate the day of year (DOY)
-        if isinstance(self.load_date, pd.Timestamp):
-            self.doy = int(self.load_date.dayofyear)
-        elif isinstance(self.load_date, (datetime, date) ):
-            self.doy = int(self.load_date.timetuple().tm_yday)
 
         # Find the appropriate attitude file.
         self.find_matching_attitude_file()
@@ -160,7 +150,7 @@ class Load_Attitude:
         attitude_files = sorted(list(pathlib.Path(config.SAMPEX_DIR, 'attitude').rglob('PSSet_6sec_*_*.txt')))
         start_end_dates = [re.findall(r'\d+', str(f.name))[1:] for f in attitude_files]
         
-        current_date_int = int(self.load_date.year*1000 + self.doy)
+        current_date_int = int(self.load_date_str)
         self.attitude_file = None
 
         for f, (start_date, end_date) in zip(attitude_files, start_end_dates):
@@ -168,7 +158,7 @@ class Load_Attitude:
                 self.attitude_file = f
         if self.attitude_file is None:
             raise ValueError(f'A matched file not found in {pathlib.Path(config.SAMPEX_DIR, "attitude")} '
-                             f'for year={self.load_date.year}, doy={self.doy}')
+                             f'for YEARDOY={self.load_date_str}')
         return self.attitude_file
 
     def load_attitude(self, columns='default', remove_old_time_cols=True):
@@ -233,3 +223,26 @@ class Load_Attitude:
         if remove_old_time_cols:
             self.attitude.drop(['Year', 'Day-of-year', 'Sec_of_day'], axis=1, inplace=True)
         return
+
+
+def date2yeardoy(day):
+    """ 
+    Converts a date in a string, datetime.datetime or a pd.Timestamp format into a
+    "YYYYDOY" string that are used for the SAMPEX names.
+    """
+    if isinstance(day, str):
+        day = pd.to_datetime(day)
+    
+    # Figure out how to calculate the day of year (DOY)
+    if isinstance(day, pd.Timestamp):
+        doy = str(day.dayofyear).zfill(3)
+    elif isinstance(day, (datetime, date)):
+        doy = str(day.timetuple().tm_yday).zfill(3)
+    return f'{day.year}{doy}'
+
+def yeardoy2date(yeardoy):
+    """
+    Converts a date in the year day-of-year format (YEARDOY)
+    into a datetime.datetime object.
+    """
+    return datetime.strptime(yeardoy, "%Y%j")
