@@ -57,6 +57,16 @@ class Passes:
             
             self.merge_hilt_attitude()
             filtered_hilt, start_indices, end_indices = self.pass_times()
+
+            # This averts a crash when no attitude data is avaliable for that date.
+            # For some reason some attitude files do not cover all of the dates in the
+            # filename. For example PSSet_6sec_2004343_2005003.txt has dates 2004343
+            # (Dec 8th) through 2004365 (Dec 31st). Since this code tries to load
+            # and merge the nonexistant attitude data from Jan 1st, 2005, the L_Shells
+            # are all NaNs.
+            if np.all(np.isnan(self.hilt.hilt['L_Shell'])):
+                continue
+
             pass_values = self.pass_values(filtered_hilt, start_indices, end_indices)
             self.passes = pd.concat([self.passes, pass_values])
             self.passes.reset_index(inplace=True, drop=True)
