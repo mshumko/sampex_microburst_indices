@@ -133,7 +133,7 @@ class Load_PET:
         pet_path = self._find_file(self.load_date)
         self.data = pd.read_csv(pet_path, sep=' ')
         self.parse_time()
-        return
+        return self.data
 
     def parse_time(self, time_index=True):
         """ 
@@ -291,3 +291,23 @@ def yeardoy2date(yeardoy):
     into a datetime.datetime object.
     """
     return datetime.strptime(yeardoy, "%Y%j")
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    day = datetime(2007, 1, 20)
+    p = Load_PET(day)
+    p.load_pet()
+
+    l = Load_HILT(day)
+    l.resolve_counts_state4()
+    # a = Load_Attitude(day)
+
+    fig, ax = plt.subplots(2, sharex=True)
+    ax[0].plot(l.hilt_resolved.index, l.hilt_resolved.counts, label='HILT')
+    ax[1].plot(p.data.index, p.data['P1_Rate'], label='PET')
+    ax[0].set(ylabel='HILT')
+    ax[1].set(ylabel='PET', xlabel='Time')
+
+    plt.suptitle(f'SAMPEX | {day.date()}')
+    plt.show()
