@@ -43,7 +43,7 @@ class Passes:
             try:
                 self.hilt = Load_HILT(date)
             except RuntimeError as err:
-                if 'The SAMPEX HILT data is not in order.' == str(err):
+                if 'The SAMPEX HILT data is not in order' in str(err):
                     continue
                 else:
                     raise

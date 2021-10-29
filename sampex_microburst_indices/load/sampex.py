@@ -34,9 +34,10 @@ class Load_HILT:
             )
         # 1 if there is just one file, and 2 if there is a file.txt and 
         # file.txt.zip files.
-        assert len(matched_files) in [1, 2], (f'0 or >2 matched HILT files found.'
-                                        f'\n{file_name_glob}'
-                                        f'\nmatched_files={matched_files}')
+        assert len(matched_files) in [1, 2], (f'{len(matched_files)} matched HILT files found.'
+                                        f'\nSearch string: {file_name_glob}'
+                                        f'\nSearch directory: {pathlib.Path(config.SAMPEX_DIR, "hilt")}'
+                                        f'\nmatched files: {matched_files}')
         self.file_path = matched_files[0]
 
         # Load the zipped data and extract if a zip file was found.
@@ -85,7 +86,7 @@ class Load_HILT:
         # Check if the seconds are monotonically increasing.
         np_time = self.hilt['Time'].to_numpy()
         if np.any(np_time[1:] < np_time[:-1]):
-            raise RuntimeError('The SAMPEX HILT data is not in order.')
+            raise RuntimeError(f'The SAMPEX HILT data is not in order for {self.load_date_str}.')
         # Convert seconds of day to a datetime object.
         day_seconds_obj = pd.to_timedelta(self.hilt['Time'], unit='s')
         self.hilt['Time'] = pd.Timestamp(self.load_date.date()) + day_seconds_obj
@@ -119,9 +120,53 @@ class Load_HILT:
 
 
 class Load_PET:
-    def __init__(self, load_date) -> None:
-
+    def __init__(self, load_date, verbose=False) -> None:
+        self.load_date = load_date
+        self.load_date_str = date2yeardoy(self.load_date)
+        self.verbose = verbose
         return
+
+    def load_pet(self):
+        """
+        Loads the PET data into self.data.
+        """
+        pet_path = self._find_file(self.load_date)
+        self.data = pd.read_csv(pet_path, sep=' ')
+        self.parse_time()
+        return
+
+    def parse_time(self, time_index=True):
+        """ 
+        Parse the seconds of day column to a datetime column. 
+        If time_index=True, the time column will become the index.
+        """
+        # Check if the seconds are monotonically increasing.
+        np_time = self.data['Time'].to_numpy()
+        if np.any(np_time[1:] < np_time[:-1]):
+            raise RuntimeError(f'The SAMPEX PET data is not in order for {self.load_date_str}.')
+        # Convert seconds of day to a datetime object.
+        day_seconds_obj = pd.to_timedelta(self.data['Time'], unit='s')
+        self.data['Time'] = pd.Timestamp(self.load_date.date()) + day_seconds_obj
+        if time_index:
+            self.data.index = self.data['Time']
+            del(self.data['Time'])
+        return
+
+    def _find_file(self, day):
+        """
+        Recursively searches the config.SAMPEX_DIR/pet/ directory for the file.
+        """
+        file_name_glob = f'phrr{self.load_date_str}*'
+        matched_files = list(
+            pathlib.Path(config.SAMPEX_DIR, 'pet').rglob(file_name_glob)
+            )
+        # 1 if there is just one file, and 2 if there is a file.txt and 
+        # file.txt.zip files.
+        assert len(matched_files)==1, (f'{len(matched_files)} matched PET files found.'
+                                        f'\nSearch string: {file_name_glob}'
+                                        f'\nSearch directory: {pathlib.Path(config.SAMPEX_DIR, "pet")}'
+                                        f'\nmatched files: {matched_files}')
+        return matched_files[0]
 
 
 class Load_Attitude:
