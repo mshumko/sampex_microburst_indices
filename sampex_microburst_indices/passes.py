@@ -68,6 +68,10 @@ class Passes:
                 
             
             self.merge_hilt_attitude()
+
+            self.hilt.hilt['L_Shell'][self.hilt.hilt['L_Shell'] < 1] = np.nan
+            self.hilt.hilt = self.hilt.hilt.dropna(subset=['L_Shell'])
+
             filtered_hilt, start_indices, end_indices = self.pass_times()
 
             # This averts a crash when no attitude data is avaliable for that date.
