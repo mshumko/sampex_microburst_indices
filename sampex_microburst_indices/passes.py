@@ -54,6 +54,12 @@ class Passes:
                 # Thus, we don't need to load the attitude data in very iteration.
                 self.attitude = Load_Attitude(date)
                 attitude_dates = set(self.attitude.attitude.index.date)
+
+                if date not in attitude_dates:
+                    # If this check fails again, it means that date does not have 
+                    # corresponding attitude data.
+                    continue
+                
             
             self.merge_hilt_attitude()
             filtered_hilt, start_indices, end_indices = self.pass_times()
