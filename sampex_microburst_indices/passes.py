@@ -52,7 +52,13 @@ class Passes:
             if date not in attitude_dates:
                 # Loading the attitude will load date and future dates in that file.
                 # Thus, we don't need to load the attitude data in very iteration.
-                self.attitude = Load_Attitude(date)
+                try:
+                    self.attitude = Load_Attitude(date)
+                except ValueError as err:
+                    if 'A matched file not found in' in str(err):
+                        continue # Last few days of HILT don't have attitude data.
+                    else:
+                        raise
                 attitude_dates = set(self.attitude.attitude.index.date)
 
                 if date not in attitude_dates:
