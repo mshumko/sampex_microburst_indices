@@ -64,7 +64,7 @@ class Passes:
             # (Dec 8th) through 2004365 (Dec 31st). Since this code tries to load
             # and merge the nonexistant attitude data from Jan 1st, 2005, the L_Shells
             # are all NaNs.
-            if np.all(np.isnan(self.hilt.hilt['L_Shell'])):
+            if np.all(np.isnan(self.hilt.hilt['L_Shell'])) or np.any(self.hilt.hilt['L_Shell']<1):
                 continue
 
             pass_values = self.pass_values(filtered_hilt, start_indices, end_indices)
