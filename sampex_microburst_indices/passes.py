@@ -49,7 +49,7 @@ class Passes:
                 else:
                     raise
 
-            if date not in attitude_dates:
+            if date.date() not in attitude_dates:
                 # Loading the attitude will load date and future dates in that file.
                 # Thus, we don't need to load the attitude data in very iteration.
                 try:
@@ -61,8 +61,8 @@ class Passes:
                         raise
                 attitude_dates = set(self.attitude.attitude.index.date)
 
-                if date not in attitude_dates:
-                    # If this check fails again, it means that date does not have 
+                if date.date() not in attitude_dates:
+                    # If this check fails again, it means that date is missing from the 
                     # corresponding attitude data.
                     continue
                 
@@ -76,8 +76,8 @@ class Passes:
             # (Dec 8th) through 2004365 (Dec 31st). Since this code tries to load
             # and merge the nonexistant attitude data from Jan 1st, 2005, the L_Shells
             # are all NaNs.
-            if np.all(np.isnan(self.hilt.hilt['L_Shell'])) or np.any(self.hilt.hilt['L_Shell']<1):
-                continue
+            # if np.all(np.isnan(self.hilt.hilt['L_Shell'])) or np.any(self.hilt.hilt['L_Shell']<1):
+            #     continue
 
             pass_values = self.pass_values(filtered_hilt, start_indices, end_indices)
             self.passes = pd.concat([self.passes, pass_values])
