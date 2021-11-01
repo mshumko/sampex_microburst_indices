@@ -18,6 +18,14 @@ class Merge_Microbursts:
         self._load_passes()
         self._load_microbursts()
         return
+    
+    def merge(self):
+        """
+        Count and merge the number of microbursts in self.microburst_name catalog
+        with the catalog of radiation belt passes in self.passes_name.
+        """
+        raise NotImplementedError
+        return
 
     def _load_passes(self):
         """
@@ -40,3 +48,4 @@ if __name__ == '__main__':
     passes_name = 'sampex_passes_v0.csv'
     microburst_name = 'microburst_catalog.csv'
     m = Merge_Microbursts(passes_name, microburst_name)
+    m.merge()
