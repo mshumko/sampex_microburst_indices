@@ -27,20 +27,25 @@ class Omni:
         """
         if self.year is not None:
             self.data = self._load_year(self.year)
-        else:
+        elif self.time_range is not None:
             self.data = pd.DataFrame(columns=omni_columns)
+            raise NotImplementedError
+        else:
+            raise ValueError('Neither year or time_range is passed.')
         return self.data
 
     def _load_year(self, verbose=False):
         """
         Load a year of OMNI data
         """
+        # Find the appropriate file.
         start_time = time.time()
         data_dir = pathlib.Path(config.PROJECT_DIR, '..', 'data')
         omni_file_paths = sorted(data_dir.rglob(f'omni*{self.year}*'))
         assert len(omni_file_paths) == 1, (
             f'{len(omni_file_paths)} OMNI files found in {data_dir.resolve()} matching "omni*{self.year}*".'
             )
+        # Load the OMNI csv file and parse the time stamps.
         omni_data = pd.read_csv(omni_file_paths[0], delim_whitespace=True, 
                                 names=omni_columns.values(), usecols=omni_columns.keys())
         time2 = time.time()
@@ -53,14 +58,14 @@ class Omni:
         """
         Parses the year, day, hour, and minute columns into a dateTime object.
         """
-        # Merge the columns into strings.
+        # Merge the columns into strings so that pd.to_datetime can parse it.
         year_doy = [f'{year}-{doy} {hour}:{minute}' for year, doy, hour, minute in 
                     omni_data[['Year', 'Day', 'Hour', 'Minute']].values]
-        # Convert to datetime.
         omni_data.index = pd.to_datetime(year_doy, format='%Y-%j %H:%M')
+
+        omni_data.drop(columns=['Year', 'Day', 'Hour', 'Minute'], inplace=True)
         return omni_data
 
 if __name__ == '__main__':
-    omni = Omni(2000)
+    omni = Omni(year=2000)
     omni.load()
-    pass
