@@ -71,3 +71,4 @@ if __name__ == '__main__':
     microburst_name = 'microburst_catalog.csv'
     m = Merge_Microbursts(passes_name, microburst_name)
     m.merge()
+    m.save()
