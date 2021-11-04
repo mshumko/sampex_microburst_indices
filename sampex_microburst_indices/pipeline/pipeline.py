@@ -16,5 +16,6 @@ p.save_passes(passes_name)
 # Step 2: Merge microbursts 
 m = merge_microbursts.Merge_Microbursts(passes_name, microburst_name)
 m.merge()
+m.save()
 
 # Step3: Merge the AE and Dst indices.
