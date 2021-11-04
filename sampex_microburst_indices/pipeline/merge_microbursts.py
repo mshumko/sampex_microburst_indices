@@ -24,7 +24,29 @@ class Merge_Microbursts:
         Count and merge the number of microbursts in self.microburst_name catalog
         with the catalog of radiation belt passes in self.passes_name.
         """
-        raise NotImplementedError
+        self.passes[['microburst_count', 'total_microburst_time', 'microburst_prob']] = np.nan
+
+        for i, row in self.passes.iterrows():
+            microburst_df = self.microbursts[
+                (self.microbursts.index > row['start_time']) &
+                (self.microbursts.index <= row['end_time']) 
+                ]
+            self.passes.loc[i, 'microburst_count'] = microburst_df.shape[0]
+            total_microburst_time = np.sum(np.abs(microburst_df['fwhm']))
+            self.passes.loc[i, 'total_microburst_time'] = total_microburst_time
+            self.passes.loc[i, 'microburst_prob'] = total_microburst_time/row['duration_s'] 
+            pass
+        return
+
+    def save(self, file_name=None):
+        """
+        Saves the self.passes DataFrame to a csv file.
+        """
+        if file_name is None:
+            file_name = self.passes_name
+
+        save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
+        self.passes.to_csv(save_path, index=False)
         return
 
     def _load_passes(self):
