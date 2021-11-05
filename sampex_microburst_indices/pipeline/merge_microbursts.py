@@ -17,6 +17,7 @@ class Merge_Microbursts:
         self.microburst_name = microburst_name
         self._load_passes()
         self._load_microbursts()
+        self._remove_long_microbursts(1)
         return
     
     def merge(self):
@@ -26,7 +27,7 @@ class Merge_Microbursts:
         """
         self.passes[['microburst_count', 'total_microburst_time', 'microburst_prob']] = np.nan
 
-        for i, row in self.passes.iterrows():
+        for i, row in progressbar.progressbar(self.passes.iterrows(), max_value=self.passes.shape[0]):
             microburst_df = self.microbursts[
                 (self.microbursts.index > row['start_time']) &
                 (self.microbursts.index <= row['end_time']) 
@@ -64,6 +65,15 @@ class Merge_Microbursts:
         load_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', self.microburst_name)
         self.microbursts = pd.read_csv(load_path, index_col=0, parse_dates=True)
         return self.microbursts
+
+    def _remove_long_microbursts(self, threshold):
+        """
+        Filter out long duration microbursts defined by a minimum threshold, in seconds.
+        """
+        self.microbursts = self.microbursts[
+            np.abs(self.microbursts['fwhm']) < threshold
+        ]
+        return
 
 
 if __name__ == '__main__':
