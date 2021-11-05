@@ -4,6 +4,7 @@ import pathlib
 import zipfile
 import re
 from datetime import datetime, date
+from matplotlib.pyplot import ylabel
 
 import pandas as pd
 import numpy as np
@@ -169,6 +170,56 @@ class Load_PET:
         return matched_files[0]
 
 
+class Load_LICA:
+    def __init__(self, load_date, verbose=False) -> None:
+        self.load_date = load_date
+        self.load_date_str = date2yeardoy(self.load_date)
+        self.verbose = verbose
+        return
+
+    def load_lica(self):
+        """
+        Loads the LICA data into self.data.
+        """
+        lica_path = self._find_file(self.load_date)
+        self.data = pd.read_csv(lica_path, sep=' ')
+        self.parse_time()
+        return self.data
+
+    def parse_time(self, time_index=True):
+        """ 
+        Parse the seconds of day column to a datetime column. 
+        If time_index=True, the time column will become the index.
+        """
+        # Check if the seconds are monotonically increasing.
+        np_time = self.data['Time'].to_numpy()
+        if np.any(np_time[1:] < np_time[:-1]):
+            raise RuntimeError(f'The SAMPEX LICA data is not in order for {self.load_date_str}.')
+        # Convert seconds of day to a datetime object.
+        day_seconds_obj = pd.to_timedelta(self.data['Time'], unit='s')
+        self.data['Time'] = pd.Timestamp(self.load_date.date()) + day_seconds_obj
+        if time_index:
+            self.data.index = self.data['Time']
+            del(self.data['Time'])
+        return
+
+    def _find_file(self, day):
+        """
+        Recursively searches the config.SAMPEX_DIR/pet/ directory for the file.
+        """
+        file_name_glob = f'lhrr{self.load_date_str}*'
+        matched_files = list(
+            pathlib.Path(config.SAMPEX_DIR, 'lica').rglob(file_name_glob)
+            )
+        # 1 if there is just one file, and 2 if there is a file.txt and 
+        # file.txt.zip files.
+        assert len(matched_files)==1, (f'{len(matched_files)} matched LICA files found.'
+                                        f'\nSearch string: {file_name_glob}'
+                                        f'\nSearch directory: {pathlib.Path(config.SAMPEX_DIR, "lica")}'
+                                        f'\nmatched files: {matched_files}')
+        return matched_files[0]
+
+
 class Load_Attitude:
     def __init__(self, load_date, verbose=False):
         """ 
@@ -296,18 +347,26 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     day = datetime(2007, 1, 20)
+
     p = Load_PET(day)
     p.load_pet()
 
-    l = Load_HILT(day)
-    l.resolve_counts_state4()
+    h = Load_HILT(day)
+    h.resolve_counts_state4()
     # a = Load_Attitude(day)
 
-    fig, ax = plt.subplots(2, sharex=True)
-    ax[0].plot(l.hilt_resolved.index, l.hilt_resolved.counts, label='HILT')
+    l = Load_LICA(day)
+    l.load_lica()
+
+    fig, ax = plt.subplots(3, sharex=True)
+    ax[0].plot(h.hilt_resolved.index, h.hilt_resolved.counts, label='HILT')
     ax[1].plot(p.data.index, p.data['P1_Rate'], label='PET')
+    ax[2].plot(l.data.index, l.data['Stop'], label='LICA/Stop')
+
     ax[0].set(ylabel='HILT')
-    ax[1].set(ylabel='PET', xlabel='Time')
+    ax[1].set(ylabel='PET')
+    ax[2].set(ylabel='LICA/Stop')
+    ax[-1].set_xlabel('Time')
 
     plt.suptitle(f'SAMPEX | {day.date()}')
     plt.show()
