@@ -1,7 +1,3 @@
-"""
-A script to explore the radiation belt pass statistics.
-"""
-
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -13,4 +9,4 @@ file_name = 'sampex_passes_v0.csv'
 file_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
 
 catalog = pd.read_csv(file_path)
-print(catalog[['duration_s']].describe())
+print(catalog.describe())
