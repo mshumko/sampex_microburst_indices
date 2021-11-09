@@ -1,5 +1,5 @@
 import pathlib
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -9,18 +9,36 @@ from sampex_microburst_indices import config
 from sampex_microburst_indices.load import omni
 
 class Merge_OMNI:
-    def __init__(self, passes_name, omni_variables=None) -> None:
+    def __init__(self, passes_name, omni_columns=None, mean_slope_windows_m=None) -> None:
         """
         Merges the OMNI data onto the radiation belt passes dataset.
+
+        Parameters
+        ----------
+        passes_name: str
+            The filename to the passes csv file in the sampex_microburst_indices/data/ folder.
+        omni_columns: list
+            A list of columns to copy from the OMNI dataset. If None, it will use
+            omni_columns = ['AE', 'AL', 'AU', 'SYM/D', 'SYM/H', 'ASY/D', 'ASY/H']
+        mean_slope_windows_m: list
+            The time lags, in minutes, to calculate the mean slope for each column in omni_columns, 
+            prior to each radiation belt pass start_time. 
         """
         self.passes_name = passes_name
-        if omni_variables is None:
-            self.omni_variables = ['AE', 'AL', 'AU', 'SYM/D', 'SYM/H', 'ASY/D', 'ASY/H']
+        if omni_columns is None:
+            self.omni_columns = ['AE', 'AL', 'AU', 'SYM/D', 'SYM/H', 'ASY/D', 'ASY/H']
         else:
-            self.omni_variables = omni_variables
+            self.omni_columns = omni_columns
 
         self._load_passes()
-        self.passes[self.omni_variables] = np.nan
+        self.passes[self.omni_columns] = np.nan
+
+        if mean_slope_windows_m is not None:
+            self.mean_slope_windows_m = mean_slope_windows_m
+
+            for slope_lag in self.mean_slope_windows_m:
+                for omni_column in self.omni_columns:
+                    self.passes[f'{omni_column}_{slope_lag}_m_lag'] = np.nan
         return
 
     def _load_passes(self):
@@ -34,7 +52,7 @@ class Merge_OMNI:
     def merge(self):
         """
         Loop over every radiation belt pass and append the mean indice values for
-        all self.omni_variables.
+        all self.omni_columns.
         """
         current_year = datetime.min
 
@@ -48,7 +66,7 @@ class Merge_OMNI:
             omni_during_pass = self.current_omni.loc[row['start_time']:row['end_time']]
             if omni_during_pass.shape[0] == 0:
                 raise ValueError('Sliced OMNI data with size 0.\n{row}')
-            self.passes.loc[i, self.omni_variables] = omni_during_pass[self.omni_variables].mean()
+            self.passes.loc[i, self.omni_columns] = omni_during_pass[self.omni_columns].mean()
         return
 
     def save(self, file_name=None):
@@ -65,6 +83,7 @@ class Merge_OMNI:
 
 if __name__ == '__main__':
     passes_name = 'sampex_passes_v0.csv'
-    m = Merge_OMNI(passes_name)
+    mean_slope_windows_m = [15, 30, 60, 4*60]
+    m = Merge_OMNI(passes_name, mean_slope_windows_m=mean_slope_windows_m)
     m.merge()
     m.save()
