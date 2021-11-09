@@ -38,7 +38,8 @@ class Merge_OMNI:
         """
         current_year = datetime.min
 
-        for i, row in progressbar.progressbar(self.passes.iterrows()):
+        for i, row in progressbar.progressbar(self.passes.iterrows(), 
+                                            max_value=self.passes.shape[0]):
             # Only load data when looping over a new year (new OMNI file).
             if row['start_time'].year != current_year:
                 self.current_omni = omni.Omni(year=row['start_time'].year).load() 

@@ -21,12 +21,12 @@ class Omni:
         self.time_range = time_range
         return
 
-    def load(self):
+    def load(self, verbose=False):
         """
         Loads either a year or a time range of data.
         """
         if self.year is not None:
-            self.data = self._load_year(self.year)
+            self.data = self._load_year(verbose=verbose)
         elif self.time_range is not None:
             self.data = pd.DataFrame(columns=omni_columns)
             raise NotImplementedError
