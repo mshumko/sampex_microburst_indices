@@ -67,5 +67,4 @@ class Omni:
         return omni_data
 
 if __name__ == '__main__':
-    omni = Omni(year=2000)
-    omni.load()
+    omni = Omni(year=2000).load()

@@ -4,6 +4,7 @@ A script that shows you how to run the data processing pipeline.
 
 import passes
 import merge_microbursts
+import merge_omni
 
 passes_name = 'sampex_passes_v0.csv'
 microburst_name = 'microburst_catalog.csv'
@@ -18,4 +19,7 @@ m = merge_microbursts.Merge_Microbursts(passes_name, microburst_name)
 m.merge()
 m.save()
 
-# Step3: Merge the AE and Dst indices.
+# Step3: Merge the indices.
+m = merge_omni.Merge_OMNI(passes_name)
+m.merge()
+m.save()
