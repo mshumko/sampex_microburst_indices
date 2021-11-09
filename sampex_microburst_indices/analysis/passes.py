@@ -16,11 +16,17 @@ catalog = pd.read_csv(file_path)
 catalog = catalog[catalog['max_att_flag'] < 100]
 print(catalog[['duration_s']].describe())
 
+pass_threshold_min = 5
+n_short_passes = catalog[catalog['duration_s']/60 < pass_threshold_min].shape[0]
+n_long_passes = catalog[catalog['duration_s']/60 > pass_threshold_min].shape[0]
+
 fig, ax = plt.subplots()
 ax.hist(catalog['duration_s']/60)
 ax.set_title('SAMPEX | Radiation Belt Pass Duration | 4 < L < 8')
 ax.set_xlabel('pass duration')
 ax.set_yscale('log')
+
+ax.text(1, 1, r'$N_{short}={{n_short_passes}}$')
 
 plt.tight_layout()
 plt.show()
