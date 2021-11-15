@@ -359,9 +359,9 @@ if __name__ == '__main__':
     l.load_lica()
 
     fig, ax = plt.subplots(3, sharex=True)
-    ax[0].plot(h.hilt_resolved.index, h.hilt_resolved.counts, label='HILT')
-    ax[1].plot(p.data.index, p.data['P1_Rate'], label='PET')
-    ax[2].plot(l.data.index, l.data['Stop'], label='LICA/Stop')
+    ax[0].step(h.hilt_resolved.index, h.hilt_resolved.counts, label='HILT', where='post')
+    ax[1].step(p.data.index, p.data['P1_Rate'], label='PET', where='post')
+    ax[2].step(l.data.index, l.data['Stop'], label='LICA/Stop', where='post')
 
     ax[0].set(ylabel='HILT')
     ax[1].set(ylabel='PET')
