@@ -38,7 +38,7 @@ class Id_Microbursts:
             try:
                 self.hilt_obj = sampex.Load_HILT(date)
             except RuntimeError as err:
-                if str(err) == "The SAMPEX HITL data is not in order.":
+                if "The SAMPEX HILT data is not in order" in str(err):
                     continue
                 else:
                     raise

@@ -2,7 +2,7 @@ from sampex_microburst_indices.id import identify_microbursts
 from sampex_microburst_indices.id import merge_attitude
 # from sampex_microburst_indices.id import merge_ae
 
-# Identify and fit microbursts
+# Identify microbursts using the O'Brien 2003 burst parameter method.
 m = identify_microbursts.Id_Microbursts(
     baseline_width_s=0.5, foreground_width_s=0.1
     )
