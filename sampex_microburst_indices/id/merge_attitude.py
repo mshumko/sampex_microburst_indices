@@ -64,7 +64,7 @@ class Merge_Attitude:
 
 
 if __name__ == "__main__":
-    cat_path = pathlib.Path(config.PROJECT_DIR, 'data', 'microburst_catalog_00.csv')
+    cat_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', 'microburst_catalog_00.csv')
     m = Merge_Attitude(cat_path)
     m.loop()
     m.save_catalog()

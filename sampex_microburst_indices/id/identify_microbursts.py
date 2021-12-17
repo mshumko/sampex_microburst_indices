@@ -140,16 +140,16 @@ class Id_Microbursts:
         if save_name is None:
             counter = 0
             while True:
-                save_path = pathlib.Path(config.PROJECT_DIR, 'data',
+                save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data',
                     'microburst_catalog_{:02d}.csv'.format(counter))
                 if not save_path.exists():
                     break
                 counter += 1
         else:
-            save_path = pathlib.Path(config.PROJECT_DIR, 'data', save_name)
+            save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', save_name)
 
         # Save the microburst catalog
-        log_path = pathlib.Path(config.PROJECT_DIR, 'data', 'catalog_log.csv')
+        log_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', 'catalog_log.csv')
         self.microburst_times.to_csv(save_path, index=False)
 
         # Log the saved catalog info.

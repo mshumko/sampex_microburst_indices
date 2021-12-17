@@ -14,7 +14,7 @@ matplotlib.rcParams['agg.path.chunksize'] = 100000
 date = pd.to_datetime('1999-8-17')
 # date = pd.to_datetime('1997-11-9')
 catalog_name = 'microburst_test_catalog.csv'
-catalog_path = pathlib.Path(config.PROJECT_DIR, 'data', catalog_name)
+catalog_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', catalog_name)
 
 catalog = pd.read_csv(catalog_path, index_col=0, parse_dates=True)
 catalog['date'] = catalog.index.date
