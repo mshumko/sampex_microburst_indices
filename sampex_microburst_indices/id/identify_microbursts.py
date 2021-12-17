@@ -164,6 +164,7 @@ class Id_Microbursts:
             data={ 
                 'time':pd.Timestamp.today(),
                 'catalog_name':save_path.name,
+                'burst_params':repr(self),
                 'git_revision_hash':git_revision_hash
                 })
         # Determine if the header needs to be written
@@ -183,3 +184,9 @@ class Id_Microbursts:
                     self.hilt_obj.counts[self.stb.peak_idt], 
                     c='r', marker='D')
         plt.show()
+
+    def __repr__(self):
+        params = (f'baseline_width_s={self.baseline_width_s}, '
+                  f'foreground_width_s={self.foreground_width_s}, '
+                  f'threshold={self.threshold}')
+        return f'{self.__class__.__qualname__}(' + params + ')'
