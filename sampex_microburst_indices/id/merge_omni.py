@@ -9,14 +9,14 @@ from sampex_microburst_indices import config
 from sampex_microburst_indices.load import omni
 
 class Merge_OMNI:
-    def __init__(self, passes_name, omni_columns=None, mean_slope_windows_m=None) -> None:
+    def __init__(self, catalog_name, omni_columns=None, mean_slope_windows_m=None) -> None:
         """
-        Merges the OMNI data onto the radiation belt passes dataset.
+        Merges the OMNI data onto the microburst catalog.
 
         Parameters
         ----------
-        passes_name: str
-            The filename to the passes csv file in the sampex_microburst_indices/data/ folder.
+        catalog_name: str
+            The filename to the microburst catalog csv file in the sampex_microburst_indices/data/ folder.
         omni_columns: list
             A list of columns to copy from the OMNI dataset. If None, it will use
             omni_columns = ['AE', 'AL', 'AU', 'SYM/D', 'SYM/H', 'ASY/D', 'ASY/H']
@@ -24,16 +24,17 @@ class Merge_OMNI:
             The time lags, in minutes, to calculate the mean slope for each column in omni_columns, 
             prior to each radiation belt pass start_time. 
         """
-        self.passes_name = passes_name
+        self.catalog_name = catalog_name
         if omni_columns is None:
             self.omni_columns = ['AE', 'AL', 'AU', 'SYM/D', 'SYM/H', 'ASY/D', 'ASY/H']
         else:
             self.omni_columns = omni_columns
 
-        self._load_passes()
-        self.passes[self.omni_columns] = np.nan
+        self._load_catalog()
+        self.catalog[self.omni_columns] = np.nan
 
         if mean_slope_windows_m is not None:
+            raise NotImplementedError('This basically does nothing ATM.')
             self.mean_slope_windows_m = mean_slope_windows_m
 
             for slope_lag in self.mean_slope_windows_m:
@@ -41,13 +42,13 @@ class Merge_OMNI:
                     self.passes[f'{omni_column}_{slope_lag}_m_lag'] = np.nan
         return
 
-    def _load_passes(self):
+    def _load_catalog(self):
         """
         Load the passes csv file and parse the start_time and end_time time stamps.
         """
-        load_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', self.passes_name)
-        self.passes = pd.read_csv(load_path, parse_dates=[0,1])
-        return self.passes
+        load_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', self.catalog_name)
+        self.catalog = pd.read_csv(load_path, parse_dates=True)
+        return self.catalog
 
     def merge(self):
         """
@@ -56,8 +57,8 @@ class Merge_OMNI:
         """
         current_year = datetime.min
 
-        for i, row in progressbar.progressbar(self.passes.iterrows(), 
-                                            max_value=self.passes.shape[0]):
+        for i, row in progressbar.progressbar(self.catalog.iterrows(), 
+                                            max_value=self.catalog.shape[0]):
             # Only load data when looping over a new year (new OMNI file).
             if row['start_time'].year != current_year:
                 self.current_omni = omni.Omni(year=row['start_time'].year).load() 
