@@ -34,6 +34,9 @@ class Id_Microbursts:
 
         for hilt_file in progressbar.progressbar(self.hilt_files, redirect_stdout=True):
             date = self.get_filename_date(hilt_file)
+            # For some reason, most of the 1996 data is useless for identifying microbursts.
+            if date.year == 1996:
+                continue
             # Load the data
             try:
                 self.hilt_obj = sampex.Load_HILT(date)
