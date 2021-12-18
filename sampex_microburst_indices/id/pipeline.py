@@ -14,6 +14,9 @@ try:
 finally:
     cat_path = m.save_catalog()
 
+print(f'Identified microbursts in '
+      f'{round((time.time()-start_time)/3600, 1)} hours')
+
 # Merge the Attitude data
 m = merge_attitude.Merge_Attitude(cat_path)
 m.loop()
