@@ -64,16 +64,18 @@ class Merge_OMNI:
         -------
         None
         """
-        catalog_copy = self.catalog.copy() # Keep the original to apply the merge to.
+        # catalog_copy = self.catalog.copy() # Keep the original to apply the merge to.
 
         for year in self.unique_years:
             print(f'Merging OMNI data for {year=}')
             self.omni = omni.Omni(year=year).load()
-
-            merged = pd.merge_asof(catalog_copy, self.ae, left_index=True, 
-                                right_index=True, tolerance=pd.Timedelta(minutes=1),
-                                direction='nearest')
-            self.catalog.update(merged)
+            
+            year_indices = np.where(self.catalog.index.year == year)[0]
+            self.catalog.loc[year_indices, :] = pd.merge_asof(
+                self.catalog.loc[year_indices, :], self.omni, left_index=True, 
+                right_index=True, tolerance=pd.Timedelta(minutes=1),
+                direction='nearest')
+            self.catalog.update(merged.loc[:, self.omni_columns], overwrite=False)
         return
 
     def _load_catalog(self):
