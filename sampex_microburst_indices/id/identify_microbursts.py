@@ -92,13 +92,14 @@ class Id_Microbursts:
         self.remove_detections_near_time_gaps()
 
         # Save to a DataFrame
-        self.microburst_times = pd.DataFrame(
+        df = pd.DataFrame(
             data={
                 'dateTime':self.hilt_obj.hilt_resolved.iloc[self.stb.peak_idt, :].index,
                 'burst_param':np.round(self.stb.n_std.values[self.stb.peak_idt].flatten(), 1)
                 },
             index=self.stb.peak_idt
             )
+        self.microburst_times = pd.concat([self.microburst_times, df])
 
         if debug:
             self.test_detections()
