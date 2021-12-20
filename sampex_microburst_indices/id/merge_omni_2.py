@@ -64,7 +64,15 @@ class Merge_OMNI:
         -------
         None
         """
-        catalog_copy = self.catalog.copy() # Keep the original to apply the merge to.
+        # The catalog_copy, and merged DataFrames, as well as the df.update
+        # method is to incrementally merge self.catalog with each year's
+        # OMNI data. If the merge is applied to self.catalog directly, it 
+        # will work the for the first iteration, but then the pd.merge_asof
+        # function will begin to append the overlapping column names with
+        # "_x" and "_y" suffixes (see the merge_asof docs). Hence, we need to
+        # apply the merge_asof function to a clean catalog and then use the 
+        # changed values in catalog_copy to modify self.catalog.
+        catalog_copy = self.catalog.copy()
 
         for year in self.unique_years:
             print(f'Merging OMNI data for {year=}')
