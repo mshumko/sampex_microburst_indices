@@ -20,12 +20,12 @@ start_time = time.time()
 
 cat_path = '/home/mike/research/sampex_microburst_indices/data/microburst_catalog_00.csv'
 # Merge the Attitude data
-m = merge_attitude.Merge_Attitude(cat_path)
-m.loop()
-m.save_catalog()
+# m = merge_attitude.Merge_Attitude(cat_path)
+# m.loop()
+# m.save_catalog()
 
 # Merge the minute OMNI data
-m = merge_omni_2.Merge_OMNI(cat_path)
+m = merge_omni.Merge_OMNI(cat_path)
 try:
     m.loop()
 finally:
