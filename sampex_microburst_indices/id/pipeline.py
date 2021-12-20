@@ -6,7 +6,7 @@ from sampex_microburst_indices.id import merge_omni_2
 
 start_time = time.time()
 
-# # Identify microbursts using the O'Brien 2003 burst parameter method.
+# # Step 1: Identify microbursts using the O'Brien 2003 burst parameter method.
 # m = identify_microbursts.Id_Microbursts(
 #     baseline_width_s=0.5, foreground_width_s=0.1
 #     )
@@ -19,12 +19,12 @@ start_time = time.time()
 #       f'{round((time.time()-start_time)/3600, 1)} hours')
 
 cat_path = '/home/mike/research/sampex_microburst_indices/data/microburst_catalog_00.csv'
-# Merge the Attitude data
+# Step 2: Merge the Attitude data
 # m = merge_attitude.Merge_Attitude(cat_path)
 # m.loop()
 # m.save_catalog()
 
-# Merge the minute OMNI data
+# Step 3: Merge the minute OMNI data
 m = merge_omni.Merge_OMNI(cat_path)
 try:
     m.loop()
