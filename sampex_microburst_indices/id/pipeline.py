@@ -2,7 +2,7 @@ import time
 
 from sampex_microburst_indices.id import identify_microbursts
 from sampex_microburst_indices.id import merge_attitude
-from sampex_microburst_indices.id import merge_omni_2
+from sampex_microburst_indices.id import merge_omni
 
 start_time = time.time()
 
