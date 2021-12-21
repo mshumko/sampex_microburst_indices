@@ -112,7 +112,8 @@ class Id_Microbursts:
         times = self.hilt_obj.hilt_resolved.index
         dt = (times[1:] - times[:-1]).total_seconds()
         bad_indices = np.array([])
-        bad_index_range = int(5/(dt[0]*2))
+        n_seconds = 5
+        bad_index_range = int(n_seconds/(dt[0]*2))
         # Loop over every peak and check that the nearby data has no
         # time gaps longer than 1 second.
         for i, peak_i in enumerate(self.stb.peak_idt):
