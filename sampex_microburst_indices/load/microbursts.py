@@ -6,7 +6,7 @@ import pandas as pd
 from sampex_microburst_indices import config
 
 class Microbursts:
-    def __init__(self, catalog_version, remove_spin_times=False, parse_dates=False):
+    def __init__(self, catalog_version, remove_spin_times=True, parse_dates=False):
         """
         A standardized loader for the microburst catalog.
         """
