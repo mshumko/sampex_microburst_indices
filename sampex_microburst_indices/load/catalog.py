@@ -1,4 +1,3 @@
-from os import path
 import pathlib
 
 import pandas as pd
@@ -35,3 +34,7 @@ class Catalog:
                 (self.catalog.loc[:, 'Att_Flag'] == 1)
             ]
         return self.catalog
+
+if __name__ == '__main__':
+    catalog = Catalog(0).load()
+    pass
