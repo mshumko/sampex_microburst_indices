@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import progressbar
 
 from sampex_microburst_indices import config
-import sampex_microburst_indices
+from sampex_microburst_indices.load import omni
 from sampex_microburst_indices.load import sampex
 
 
@@ -47,6 +47,7 @@ class Norm:
             # For some reason, most of the 1996 data is useless for identifying microbursts.
             if date.year == 1996:
                 continue
+
             # Load the HILT data
             try:
                 self.hilt_obj = sampex.Load_HILT(date)
@@ -55,16 +56,32 @@ class Norm:
                     continue
                 else:
                     raise
-            # Resolve the 20 ms data
             self.hilt_obj.resolve_counts_state4()
+            self.hilt_df = self.hilt_obj.hilt_resolved
 
-            # Load corresponding the Attitude data
+            # Load the Attitude data
             if ((not hasattr(self, 'attitude')) or 
                 (self.attitude.attitude[self.attitude.attitude.index.date == date].shape[0] == 0)):
+
                 print(f'Loading attitude file for {date=}')
                 self.attitude = sampex.Load_Attitude(date)
 
-            #TODO: Histogram here.
+            # Merge attitude to HILT
+            self.hilt_df = pd.merge_asof(self.hilt_df, self.attitude.attitude, 
+                left_index=True, right_index=True, tolerance=pd.Timedelta(seconds=6),
+                direction='nearest')
+
+            # Load and merge OMNI to HILT
+            if ((not hasattr(self, 'omni')) or 
+                (self.omni.data[self.omni.data.index.date.year == date.year].shape[0] == 0)):
+
+                print(f'Loading OMNI file for {date=}')
+                self.omni = omni.Omni(date.year)
+
+            self.hilt_df = pd.merge_asof(
+                self.hilt_df, self.omni, left_index=True, 
+                right_index=True, tolerance=pd.Timedelta(minutes=1),
+                direction='nearest')            
         return
 
     def save(self, file_name=None):
