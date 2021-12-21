@@ -1,0 +1,2 @@
+time,catalog_name,burst_params,git_revision_hash
+2021-12-20 23:18:10.381745,microburst_catalog_00.csv,"Id_Microbursts(baseline_width_s=0.5, foreground_width_s=0.1, threshold=10)",19e169f2bd3d03bbbc97dd1343155fd7adf63b1c
