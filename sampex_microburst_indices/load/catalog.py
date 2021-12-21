@@ -5,7 +5,7 @@ import pandas as pd
 
 from sampex_microburst_indices import config
 
-class Microbursts:
+class Catalog:
     def __init__(self, catalog_version, remove_spin_times=True, parse_dates=False):
         """
         A standardized loader for the microburst catalog.
@@ -24,6 +24,8 @@ class Microbursts:
             f'microburst_catalog_{self.catalog_version.zfill(2)}.csv')
 
         self.catalog = pd.read_csv(file_path, index_col=0, parse_dates=self.parse_dates)
+
+        self.catalog.dropna(inplace=True)  # Drop rows with missing attitude data.
 
         if self.remove_spin_times:
             # See the docs to learn why Att_Flag = 0 or 1
