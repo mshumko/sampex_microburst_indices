@@ -1,6 +1,7 @@
 # Calculate the SAMPEX sampling time normalization for each microburst 
 # catalog bin.
 import pathlib
+import re
 
 import numpy as np
 import pandas as pd
@@ -8,6 +9,7 @@ import matplotlib.pyplot as plt
 import progressbar
 
 from sampex_microburst_indices import config
+import sampex_microburst_indices
 from sampex_microburst_indices.load import sampex
 
 
@@ -41,11 +43,11 @@ class Norm:
         self._get_hilt_file_names()
 
         for hilt_file in progressbar.progressbar(self.hilt_files, redirect_stdout=True):
-            date = self.get_filename_date(hilt_file)
+            date = self._get_filename_date(hilt_file)
             # For some reason, most of the 1996 data is useless for identifying microbursts.
             if date.year == 1996:
                 continue
-            # Load the data
+            # Load the HILT data
             try:
                 self.hilt_obj = sampex.Load_HILT(date)
             except RuntimeError as err:
@@ -55,6 +57,12 @@ class Norm:
                     raise
             # Resolve the 20 ms data
             self.hilt_obj.resolve_counts_state4()
+
+            # Load corresponding the Attitude data
+            if ((not hasattr(self, 'attitude')) or 
+                (self.attitude.attitude[self.attitude.attitude.index.date == date].shape[0] == 0)):
+                print(f'Loading attitude file for {date=}')
+                self.attitude = sampex.Load_Attitude(date)
 
             #TODO: Histogram here.
         return
@@ -83,6 +91,14 @@ class Norm:
             raise FileNotFoundError('No HILT files found. Is the data directory avaliable '
                                     'and defined in config.SAMPEX_DIR?')
         return
+
+    def _get_filename_date(self, file_path):
+        """ Given a filename find the date using regex and pd.to_datetime"""
+        file_name = file_path.name
+        # Pick off the numbers out of the filename.
+        year_doy_str = re.findall(r'\d+', str(file_name))[0]
+        # Parse the date assuming a YYYYDOY format.
+        return pd.to_datetime(year_doy_str, format='%Y%j')
 
 if __name__ == '__main__':
     bins = {

@@ -286,7 +286,7 @@ class Load_Attitude:
                                         names=columns.values(), 
                                         usecols=columns.keys())
         self._parse_attitude_datetime(remove_old_time_cols)
-        return
+        return self.attitude
 
     def _skip_header(self, f):
         """ 
