@@ -2,7 +2,6 @@
 # catalog bin.
 import pathlib
 import re
-import time
 
 import numpy as np
 import pandas as pd
@@ -49,7 +48,6 @@ class Norm:
         self._get_hilt_file_names()
 
         for hilt_file in progressbar.progressbar(self.hilt_files, redirect_stdout=True):
-            start_time = time.time()
             date = self._get_filename_date(hilt_file)
             # For some reason, most of the 1996 data is useless for identifying microbursts,
             # so we ignore that year here too.
@@ -64,7 +62,6 @@ class Norm:
                     continue
                 else:
                     raise
-            print(f'HILT load time {round(time.time()-start_time, 1)}')
             # Here, each time stamp is 0.1 seconds instead of 20 ms as when I call 
             # self.hilt_obj.resolve_counts_state4()
             self.hilt = self.hilt_obj.hilt
@@ -83,7 +80,7 @@ class Norm:
 
             # Load and merge OMNI to HILT
             if ((not hasattr(self, 'omni')) or 
-                (self.omni.data[self.omni.data.index.date.year == date.year].shape[0] == 0)):
+                (self.omni[self.omni.index.year == date.year].shape[0] == 0)):
 
                 print(f'Loading OMNI file for {date.date()}')
                 self.omni = omni.Omni(date.year).load()
@@ -98,7 +95,8 @@ class Norm:
                 self.hilt.loc[:, self.bins.keys()].to_numpy(),  # The order is preserved so the correct axes are binned.
                 bins=list(self.bins.values())
             )
-            self.norm_s += (H/10).astype(int)  # Divide by 10 since each time stamp is 0.1 s.
+            # Divide by 10 so self.norm_s is in units of seconds...because each time stamp is 0.1 s.
+            self.norm_s += (H/10).astype(int)
         return
 
     def save(self, file_name=None):
