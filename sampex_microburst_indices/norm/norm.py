@@ -101,16 +101,27 @@ class Norm:
 
     def save(self, file_name=None):
         """
-        Save the normalization and bins to a numpy npy format.
+        Save the normalization and bins to a numpy npz archive.
 
         Parameters
         ----------
         file_name: str
-            The npy filename. If None, will use the format morm_XX.npy where
+            The npy filename. If None, will use the format norm_XX.npy where
             XX is the version number, starting at 00, and incrementing by 1 if 
             another version already exists.
         """
+        if file_name is None:
+            counter = 0
+            while True:
+                save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data',
+                    'norm_{:02d}.npz'.format(counter))
+                if not save_path.exists():
+                    break
+                counter += 1
+        else:
+            save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
 
+        np.savez(save_path, **self.bins)  # Saves
         return
 
     def _get_hilt_file_names(self):
@@ -132,6 +143,7 @@ class Norm:
         # Parse the date assuming a YYYYDOY format.
         return pd.to_datetime(year_doy_str, format='%Y%j')
 
+
 if __name__ == '__main__':
     bins = {
         'L_Shell':np.arange(3, 9.1, 1),
@@ -141,3 +153,4 @@ if __name__ == '__main__':
     }
     n = Norm(bins)
     n.loop()
+    n.save()
