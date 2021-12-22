@@ -61,14 +61,7 @@ class Norm:
                     continue
                 else:
                     raise    
-
-            # The Norm magic happens here.
-            H, _ = np.histogramdd(
-                self.hilt.loc[:, self.bins.keys()].to_numpy(),
-                bins=list(self.bins.values())
-            )
-            # Divide by 10 so self.norm_s is in units of seconds...because each time stamp is 0.1 s.
-            self.norm_s += (H/10).astype(int)
+            self._hist_hilt()
         return
 
     def save(self, file_name=None):
@@ -95,6 +88,25 @@ class Norm:
 
         np.savez(save_path, **self.bins)  # Saves
         return
+
+    def _get_hilt_file_names(self):
+        """
+        Get a sorted list of file names in the State4 directory
+        """
+        hilt_files_generator = self.hilt_dir.glob('*')
+        self.hilt_files = sorted(list(hilt_files_generator))
+        if len(self.hilt_files) == 0:
+            raise FileNotFoundError('No HILT files found. Is the data directory avaliable '
+                                    'and defined in config.SAMPEX_DIR?')
+        return
+
+    def _get_filename_date(self, file_path):
+        """ Given a filename find the date using regex and pd.to_datetime"""
+        file_name = file_path.name
+        # Pick off the numbers out of the filename.
+        year_doy_str = re.findall(r'\d+', str(file_name))[0]
+        # Parse the date assuming a YYYYDOY format.
+        return pd.to_datetime(year_doy_str, format='%Y%j')
 
     def _load_and_merge_data(self, date):
         """
@@ -132,24 +144,17 @@ class Norm:
             direction='nearest')
         return
 
-    def _get_hilt_file_names(self):
+    def _hist_hilt(self):
         """
-        Get a sorted list of file names in the State4 directory
-        """
-        hilt_files_generator = self.hilt_dir.glob('*')
-        self.hilt_files = sorted(list(hilt_files_generator))
-        if len(self.hilt_files) == 0:
-            raise FileNotFoundError('No HILT files found. Is the data directory avaliable '
-                                    'and defined in config.SAMPEX_DIR?')
+        The Norm magic happens here.
+        """    
+        H, _ = np.histogramdd(
+            self.hilt.loc[:, self.bins.keys()].to_numpy(),
+            bins=list(self.bins.values())
+        )
+        # Divide by 10 so self.norm_s is in units of seconds...because each time stamp is 0.1 s.
+        self.norm_s += (H/10).astype(int)
         return
-
-    def _get_filename_date(self, file_path):
-        """ Given a filename find the date using regex and pd.to_datetime"""
-        file_name = file_path.name
-        # Pick off the numbers out of the filename.
-        year_doy_str = re.findall(r'\d+', str(file_name))[0]
-        # Parse the date assuming a YYYYDOY format.
-        return pd.to_datetime(year_doy_str, format='%Y%j')
 
 
 if __name__ == '__main__':
