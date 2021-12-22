@@ -66,7 +66,8 @@ class Norm:
 
     def save(self, file_name=None):
         """
-        Save the normalization and bins to a numpy npz archive.
+        Save the normalization and bins to a numpy npz archive. Read the archive
+        with np.lead() which will return a dictionary-like object.
 
         Parameters
         ----------
@@ -86,7 +87,9 @@ class Norm:
         else:
             save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
 
-        np.savez(save_path, **self.bins)  # Saves
+        save_dict = self.bins.copy()
+        save_dict['norm'] = self.norm_s
+        np.savez(save_path, **save_dict)
         return
 
     def _get_hilt_file_names(self):
