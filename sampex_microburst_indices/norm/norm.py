@@ -145,6 +145,15 @@ class Norm:
             self.hilt, self.omni, left_index=True, 
             right_index=True, tolerance=pd.Timedelta(minutes=1),
             direction='nearest')
+
+        self.hilt.dropna(inplace=True)  # If there are any missing Attitude or OMNI values
+        if self.remove_spin_times:
+            # See the docs to learn why Att_Flag = 0 or 1
+            # http://www.srl.caltech.edu/sampex/DataCenter/docs/att_flag_details.txt
+            self.hilt = self.hilt[
+                (self.hilt.loc[:, 'Att_Flag'] == 0) |
+                (self.hilt.loc[:, 'Att_Flag'] == 1)
+            ]
         return
 
     def _hist_hilt(self):
@@ -165,7 +174,7 @@ if __name__ == '__main__':
         'L_Shell':np.arange(3, 9.1, 1),
         'MLT':np.arange(0, 24.1, 1),
         'AE':np.arange(0, 2001, 100), 
-        'SYM/H':np.arange(0, -201, -20)
+        'SYM/H':np.arange(-200, 61, 20)
     }
     n = Norm(bins)
     n.loop()
