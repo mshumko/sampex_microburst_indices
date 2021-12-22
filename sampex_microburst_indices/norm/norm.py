@@ -56,9 +56,11 @@ class Norm:
 
             try:
                 self._load_and_merge_data(date)  # The HILT, Attitude, and OMNI datasets.
-            except RuntimeError as err:
+            except (RuntimeError, ValueError) as err:
                 if "The SAMPEX HILT data is not in order" in str(err):
                     continue
+                elif ('A matched file not found in' in str(err)) and (date.date() == pd.Timestamp(2012, 11, 6)):
+                    continue  # This day doesn't have an attiude file.
                 else:
                     raise    
             self._hist_hilt()
