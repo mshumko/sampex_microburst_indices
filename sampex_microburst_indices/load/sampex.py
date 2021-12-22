@@ -60,11 +60,9 @@ class Load_HILT:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             if extract:
                 zip_ref.extractall(zip_path.parent)
-                #self.hilt = pd.read_csv(zip_path.parent / txt_name)
                 self.read_csv(zip_path.parent / txt_name)
             else:
                 with zip_ref.open(txt_name) as f:
-                    # self.hilt = pd.read_csv(f, sep=' ')
                     self.read_csv(f)
         return
     

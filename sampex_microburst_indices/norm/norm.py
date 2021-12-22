@@ -2,6 +2,7 @@
 # catalog bin.
 import pathlib
 import re
+import time
 
 import numpy as np
 import pandas as pd
@@ -28,11 +29,16 @@ class Norm:
             when Att_Flag >= 100.
         """
         self.bins = bins
+        # Check that each bin is monotonically increasing for numpy.histogramdd()
+        for key, val in self.bins.items():
+            if any(np.diff(val) < 0):
+                self.bins[key] = sorted(val)
+
         self.remove_spin_times = remove_spin_times
         self.hilt_dir = pathlib.Path(config.SAMPEX_DIR, 'hilt', 'State4')
 
-        shape = tuple([len(vals) for _, vals in self.bins.items()])
-        self.norm = np.zeros(shape, dtype=int)
+        shape = tuple([len(vals)-1 for _, vals in self.bins.items()])
+        self.norm_s = np.zeros(shape, dtype=int)
         return
 
     def loop(self):
@@ -43,8 +49,10 @@ class Norm:
         self._get_hilt_file_names()
 
         for hilt_file in progressbar.progressbar(self.hilt_files, redirect_stdout=True):
+            start_time = time.time()
             date = self._get_filename_date(hilt_file)
-            # For some reason, most of the 1996 data is useless for identifying microbursts.
+            # For some reason, most of the 1996 data is useless for identifying microbursts,
+            # so we ignore that year here too.
             if date.year == 1996:
                 continue
 
@@ -56,18 +64,20 @@ class Norm:
                     continue
                 else:
                     raise
-            self.hilt_obj.resolve_counts_state4()
-            self.hilt_df = self.hilt_obj.hilt_resolved
+            print(f'HILT load time {round(time.time()-start_time, 1)}')
+            # Here, each time stamp is 0.1 seconds instead of 20 ms as when I call 
+            # self.hilt_obj.resolve_counts_state4()
+            self.hilt = self.hilt_obj.hilt
 
             # Load the Attitude data
             if ((not hasattr(self, 'attitude')) or 
                 (self.attitude.attitude[self.attitude.attitude.index.date == date].shape[0] == 0)):
 
-                print(f'Loading attitude file for {date=}')
+                print(f'Loading attitude file for {date.date()}')
                 self.attitude = sampex.Load_Attitude(date)
 
             # Merge attitude to HILT
-            self.hilt_df = pd.merge_asof(self.hilt_df, self.attitude.attitude, 
+            self.hilt = pd.merge_asof(self.hilt, self.attitude.attitude, 
                 left_index=True, right_index=True, tolerance=pd.Timedelta(seconds=6),
                 direction='nearest')
 
@@ -75,13 +85,20 @@ class Norm:
             if ((not hasattr(self, 'omni')) or 
                 (self.omni.data[self.omni.data.index.date.year == date.year].shape[0] == 0)):
 
-                print(f'Loading OMNI file for {date=}')
-                self.omni = omni.Omni(date.year)
+                print(f'Loading OMNI file for {date.date()}')
+                self.omni = omni.Omni(date.year).load()
 
-            self.hilt_df = pd.merge_asof(
-                self.hilt_df, self.omni, left_index=True, 
+            self.hilt = pd.merge_asof(
+                self.hilt, self.omni, left_index=True, 
                 right_index=True, tolerance=pd.Timedelta(minutes=1),
-                direction='nearest')            
+                direction='nearest')
+
+            # The Norm magic happens here.
+            H, _ = np.histogramdd(
+                self.hilt.loc[:, self.bins.keys()].to_numpy(),  # The order is preserved so the correct axes are binned.
+                bins=list(self.bins.values())
+            )
+            self.norm_s += (H/10).astype(int)  # Divide by 10 since each time stamp is 0.1 s.
         return
 
     def save(self, file_name=None):
@@ -119,10 +136,10 @@ class Norm:
 
 if __name__ == '__main__':
     bins = {
-        'AE':np.arange(0, 2001, 100), 
-        'SYM/H':np.arange(0, -201, -20),
         'L_Shell':np.arange(3, 9.1, 1),
-        'MLT':np.arange(0, 24.1, 1)
+        'MLT':np.arange(0, 24.1, 1),
+        'AE':np.arange(0, 2001, 100), 
+        'SYM/H':np.arange(0, -201, -20)
     }
     n = Norm(bins)
     n.loop()
