@@ -146,7 +146,8 @@ class Norm:
             right_index=True, tolerance=pd.Timedelta(minutes=1),
             direction='nearest')
 
-        self.hilt.dropna(inplace=True)  # If there are any missing Attitude or OMNI values
+        # Apply the same attitude and nan filters as Catalog() in catalog.py
+        self.hilt.dropna(inplace=True)
         if self.remove_spin_times:
             # See the docs to learn why Att_Flag = 0 or 1
             # http://www.srl.caltech.edu/sampex/DataCenter/docs/att_flag_details.txt
