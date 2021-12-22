@@ -60,7 +60,7 @@ class Norm:
                 if "The SAMPEX HILT data is not in order" in str(err):
                     continue
                 elif ('A matched file not found in' in str(err)) and (date.date() == pd.Timestamp(2012, 11, 6)):
-                    continue  # This day doesn't have an attiude file.
+                    continue  # pd.Timestamp(2012, 11, 6) date doesn't have an attitude file.
                 else:
                     raise    
             self._hist_hilt()
