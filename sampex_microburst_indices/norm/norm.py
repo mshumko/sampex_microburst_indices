@@ -54,45 +54,17 @@ class Norm:
             if date.year == 1996:
                 continue
 
-            # Load the HILT data
             try:
-                self.hilt_obj = sampex.Load_HILT(date)
+                self._load_and_merge_data(date)  # The HILT, Attitude, and OMNI datasets.
             except RuntimeError as err:
                 if "The SAMPEX HILT data is not in order" in str(err):
                     continue
                 else:
-                    raise
-            # Here, each time stamp is 0.1 seconds instead of 20 ms as when I call 
-            # self.hilt_obj.resolve_counts_state4()
-            self.hilt = self.hilt_obj.hilt
-
-            # Load the Attitude data
-            if ((not hasattr(self, 'attitude')) or 
-                (self.attitude.attitude[self.attitude.attitude.index.date == date].shape[0] == 0)):
-
-                print(f'Loading attitude file for {date.date()}')
-                self.attitude = sampex.Load_Attitude(date)
-
-            # Merge attitude to HILT
-            self.hilt = pd.merge_asof(self.hilt, self.attitude.attitude, 
-                left_index=True, right_index=True, tolerance=pd.Timedelta(seconds=6),
-                direction='nearest')
-
-            # Load and merge OMNI to HILT
-            if ((not hasattr(self, 'omni')) or 
-                (self.omni[self.omni.index.year == date.year].shape[0] == 0)):
-
-                print(f'Loading OMNI file for {date.date()}')
-                self.omni = omni.Omni(date.year).load()
-
-            self.hilt = pd.merge_asof(
-                self.hilt, self.omni, left_index=True, 
-                right_index=True, tolerance=pd.Timedelta(minutes=1),
-                direction='nearest')
+                    raise    
 
             # The Norm magic happens here.
             H, _ = np.histogramdd(
-                self.hilt.loc[:, self.bins.keys()].to_numpy(),  # The order is preserved so the correct axes are binned.
+                self.hilt.loc[:, self.bins.keys()].to_numpy(),
                 bins=list(self.bins.values())
             )
             # Divide by 10 so self.norm_s is in units of seconds...because each time stamp is 0.1 s.
@@ -122,6 +94,42 @@ class Norm:
             save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
 
         np.savez(save_path, **self.bins)  # Saves
+        return
+
+    def _load_and_merge_data(self, date):
+        """
+        Loads the SAMPEX HILT and Attitude data and the OMNI data. Then it 
+        merges the Attitude and OMNI data to HILT and returns the merged 
+        pd.DataFrame.
+        """
+        # Here, each time stamp is 0.1 seconds instead of 20 ms as when I call 
+        # self.hilt_obj.resolve_counts_state4()
+        self.hilt_obj = sampex.Load_HILT(date)
+        self.hilt = self.hilt_obj.hilt
+
+        # Load the Attitude data
+        if ((not hasattr(self, 'attitude')) or 
+            (self.attitude.attitude[self.attitude.attitude.index.date == date].shape[0] == 0)):
+
+            print(f'Loading attitude file for {date.date()}')
+            self.attitude = sampex.Load_Attitude(date)
+
+        # Merge attitude to HILT
+        self.hilt = pd.merge_asof(self.hilt, self.attitude.attitude, 
+            left_index=True, right_index=True, tolerance=pd.Timedelta(seconds=6),
+            direction='nearest')
+
+        # Load and merge OMNI to HILT
+        if ((not hasattr(self, 'omni')) or 
+            (self.omni[self.omni.index.year == date.year].shape[0] == 0)):
+
+            print(f'Loading OMNI file for {date.date()}')
+            self.omni = omni.Omni(date.year).load()
+
+        self.hilt = pd.merge_asof(
+            self.hilt, self.omni, left_index=True, 
+            right_index=True, tolerance=pd.Timedelta(minutes=1),
+            direction='nearest')
         return
 
     def _get_hilt_file_names(self):
