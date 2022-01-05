@@ -366,4 +366,5 @@ if __name__ == '__main__':
     ax[-1].set_xlabel('Time')
 
     plt.suptitle(f'SAMPEX | {day.date()}')
+    plt.tight_layout()
     plt.show()
