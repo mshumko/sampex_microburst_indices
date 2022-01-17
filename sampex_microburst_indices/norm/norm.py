@@ -90,7 +90,8 @@ class Norm:
             save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
 
         save_dict = self.bins.copy()
-        save_dict['bin_order'] = self.bins.keys()
+        # The bin arrays are not guaranteed to be in order.
+        save_dict['bin_order'] = list(self.bins.keys())  
         save_dict['norm'] = self.norm_s
         np.savez(save_path, **save_dict)
         return

@@ -53,7 +53,7 @@ class Catalog:
         optionally sum over the marginalize_variables.
         """
         file_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', 
-            f'norm_{norm_version.zfill(2)}.npz')
+            f'norm_{str(norm_version).zfill(2)}.npz')
         norm = np.load(file_path)
         print(norm.files)
 
@@ -62,5 +62,7 @@ class Catalog:
         return
 
 if __name__ == '__main__':
-    catalog = Catalog(0).load()
+    catalog = Catalog(0)
+    catalog.load()
+    catalog.hist(norm_version=0)
     pass
