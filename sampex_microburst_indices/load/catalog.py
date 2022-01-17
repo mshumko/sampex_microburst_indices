@@ -45,6 +45,13 @@ class Catalog:
 
         if norm_version is not None:
             self.load_norm(norm_version, marginalize_variables=marginalize_variables)
+
+        for marginalize_variable in marginalize_variables:
+            norm_index = np.where(np.array(self.norm['bin_order'])==marginalize_variable)[0]
+            assert len(norm_index) == 1, (f'{len(norm_index)} normalizaion '
+                f'indices found that match {marginalize_variable} in '
+                f'norm_bins={self.norm["bin_order"]}')
+            # TODO: Add norm = norm.sum(axis=norm_index) here.
         return
 
     def load_norm(self, norm_version, marginalize_variables=[]):
@@ -54,8 +61,8 @@ class Catalog:
         """
         file_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', 
             f'norm_{str(norm_version).zfill(2)}.npz')
-        norm = np.load(file_path)
-        print(norm.files)
+        self.norm = np.load(file_path)
+        print(self.norm.files)
 
         if len(marginalize_variables):
             raise NotImplementedError
