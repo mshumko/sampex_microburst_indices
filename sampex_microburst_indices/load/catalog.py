@@ -1,6 +1,7 @@
 import pathlib
 
 import pandas as pd
+import numpy as np
 
 from sampex_microburst_indices import config
 
@@ -34,6 +35,20 @@ class Catalog:
                 (self.catalog.loc[:, 'Att_Flag'] == 1)
             ]
         return self.catalog
+
+    def load_norm(self, norm_version, marginalize_variables=[]):
+        """
+        Load the normalization .npz file with the norm_version number and
+        optionally sum over the marginalize_variables.
+        """
+        file_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', 
+            f'norm_{norm_version.zfill(2)}.npz')
+        norm = np.load(file_path)
+        print(norm.files)
+
+        if len(marginalize_variables.keys()):
+            raise NotImplementedError
+        return
 
 if __name__ == '__main__':
     catalog = Catalog(0).load()

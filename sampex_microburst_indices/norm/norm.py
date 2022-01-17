@@ -45,7 +45,7 @@ class Norm:
         Loop over each HILT file, merge the attitude and OMNI data, then histogram the resulting
         data.
         """
-        self._get_hilt_file_names()
+        self._get_hilt_filenames()
 
         for hilt_file in progressbar.progressbar(self.hilt_files, redirect_stdout=True):
             date = self._get_filename_date(hilt_file)
@@ -90,11 +90,12 @@ class Norm:
             save_path = pathlib.Path(config.PROJECT_DIR, '..', 'data', file_name)
 
         save_dict = self.bins.copy()
+        save_dict['bin_order'] = self.bins.keys()
         save_dict['norm'] = self.norm_s
         np.savez(save_path, **save_dict)
         return
 
-    def _get_hilt_file_names(self):
+    def _get_hilt_filenames(self):
         """
         Get a sorted list of file names in the State4 directory
         """
