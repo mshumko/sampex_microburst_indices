@@ -36,6 +36,17 @@ class Catalog:
             ]
         return self.catalog
 
+    def hist(self, norm_version=None, marginalize_variables=[]):
+        """
+        Histogram the self.catalog and optionally normalize it by a 
+        normalization file (that is optionally margianalized if 
+        marginalize_variables are specified).
+        """
+
+        if norm_version is not None:
+            self.load_norm(norm_version, marginalize_variables=marginalize_variables)
+        return
+
     def load_norm(self, norm_version, marginalize_variables=[]):
         """
         Load the normalization .npz file with the norm_version number and
@@ -46,7 +57,7 @@ class Catalog:
         norm = np.load(file_path)
         print(norm.files)
 
-        if len(marginalize_variables.keys()):
+        if len(marginalize_variables):
             raise NotImplementedError
         return
 
